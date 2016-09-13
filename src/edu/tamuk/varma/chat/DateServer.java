@@ -1,4 +1,4 @@
-package tamuk.varma.chat;
+package edu.tamuk.varma.chat;
 
 import java.io.IOException;
 import java.io.PrintWriter;
