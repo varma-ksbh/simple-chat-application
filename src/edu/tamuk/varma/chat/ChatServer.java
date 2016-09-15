@@ -51,6 +51,19 @@ public class ChatServer {
      * The appplication main method, which just listens on a port and
      * spawns handler threads.
      */
+    
+    private synchronized static void broadcast(String name, String message_type, String message){
+    	
+    	
+    	for (PrintWriter writer : writers) {
+    		writer.println(message_type + " "  + name + ": " + message);
+        }
+    }
+    
+    public static void noof_users_online(){
+    	System.out.println("Current no.of online users:" + names.size());
+    }
+    
     public static void main(String[] args) throws Exception {
         System.out.println("The chat server is running.");
         ServerSocket listener = new ServerSocket(PORT);
@@ -68,6 +81,8 @@ public class ChatServer {
      * loop and are responsible for a dealing with a single client
      * and broadcasting its messages.
      */
+    
+    
     private static class Handler extends Thread {
         private String name;
         private Socket socket;
@@ -110,6 +125,7 @@ public class ChatServer {
                     synchronized (names) {
                         if (!names.contains(name)) {
                             names.add(name);
+                            noof_users_online();
                             break;
                         }
                     }
@@ -128,9 +144,10 @@ public class ChatServer {
                     if (input == null) {
                         return;
                     }
-                    for (PrintWriter writer : writers) {
+                    broadcast(name,"MESSAGE", input);
+                    /*for (PrintWriter writer : writers) {
                         writer.println("MESSAGE " + name + ": " + input);
-                    }
+                    }*/
                 }
             } catch (IOException e) {
                 System.out.println(e);
@@ -142,9 +159,11 @@ public class ChatServer {
                 }
                 if (out != null) {
                     writers.remove(out);
+                    broadcast(name,"MESSAGE", "<<EXITED FROM THE CHAT>>");
                 }
                 try {
                     socket.close();
+                    noof_users_online();
                 } catch (IOException e) {
                 }
             }
