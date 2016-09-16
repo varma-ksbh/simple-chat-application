@@ -12,41 +12,25 @@ public class ChatClient {
     BufferedReader in;
     PrintWriter out;
 
-    /**
-     * Constructs the client by laying out the GUI and registering a
-     * listener with the textfield so that pressing Return in the
-     * listener sends the textfield contents to the server.  Note
-     * however that the textfield is initially NOT editable, and
-     * only becomes editable AFTER the client receives the NAMEACCEPTED
-     * message from the server.
-     */
+    // Constructs chat client by prompting for server-address and unique chat name 
     public ChatClient(){
     	System.out.println("Please input your preferred chat name..");
     	this.chatName = new Scanner(System.in).nextLine();
     }
      
-    /**
-     * Prompt for and return the address of the server.
-     */
+    // Getter for server address
     private String getServerAddress() {
     	System.out.println("Please input server address.! default is 127.0.0.1");
     	String address = new Scanner(System.in).nextLine();
         return address = (address == "" ) ? "127.0.0.1" : address;
     }
 
-    /**
-     * Prompt for and return the desired screen name.
-     */
+    // Getter for chat name
     public String getName() {
     	return this.chatName;
     }
     
-    private void setName(String chatname){
-    	this.chatName = chatname;
-    }
-    /**
-     * Connects to the server then enters the processing loop.
-     */
+    // Connects to the server and loops for sending & receiving messages
     private void run() throws IOException {
 
         // Make connection and initialize streams
@@ -56,19 +40,19 @@ public class ChatClient {
             socket.getInputStream()));
         out = new PrintWriter(socket.getOutputStream(), true);
 
-        // Process all messages from server, according to the protocol.
         while (true) {
             String line = in.readLine();
             if (line.startsWith("SUBMITNAME")) {
                 out.println(getName());
             } else if (line.startsWith("NAMEACCEPTED")) {
-            	System.out.println("Your chat name:" + getName() + " is Accepted! Happy chatting!");
+            	System.out.println("Your chat name:" + getName() + " is Accepted!");
+            	System.out.println("==============" + getName() + " chat window==============");
+            	
+            	// This thread acts as an event-listener waiting for the user to input chat on the terminal and then sends the message to the server
             	new Thread(new Runnable() {
-
             	    public void run() {
             	    	BufferedReader chatinput = new BufferedReader(new InputStreamReader(System.in));
             	    	String chat = "";
-            	    	
             	    	while(true){
             	    		try {
 								while((chat = chatinput.readLine()) != null){
@@ -79,21 +63,18 @@ public class ChatClient {
 								e.printStackTrace();
 							}
             	    	}
-            	    	
             	    }
-            	            
             	}).start();
+            	
             } else if (line.startsWith("MESSAGE")) {
+            	// Display the message only if its of another client
             	if(! line.substring(8).startsWith(getName()))
-            		//System.out.println("You:" + line.substring(8 + getName().length()));
             		System.out.println(line.substring(8));
             } 
         }
     }
 
-    /**
-     * Runs the client as an application with a closeable frame.
-     */
+    // Creates new chatclients and runs them
     public static void main(String[] args) throws Exception {
         ChatClient client = new ChatClient();
         client.run();
